@@ -104,7 +104,27 @@ Valores sempre em **centavos** para não ter erro de arredondamento.
 
 ---
 
-## Colocando no ar (de graça)
+## No ar sem cartão: Render + Neon
+
+O caminho mais simples, e o que está em uso: o **Render** roda a aplicação a partir do GitHub e o **Neon** guarda o banco Postgres. Os dois têm plano grátis sem cartão e dá pra entrar com a conta do GitHub.
+
+1. **Neon** ([neon.com](https://neon.com)): crie um projeto na região **AWS US East 1 (N. Virginia)** e copie a *connection string* (`postgresql://...`).
+2. **Render** ([render.com](https://render.com)): **New → Web Service → Public Git Repository** com a URL deste repositório. Ele detecta o `Dockerfile`. Região **Virginia** (perto do banco), plano **Free**.
+3. Variáveis de ambiente no Render:
+
+| Variável | Valor |
+|---|---|
+| `DATABASE_URL` | a connection string do Neon, do jeito que vem (`postgresql://...`) |
+| `PAINEL_USUARIO` / `PAINEL_SENHA` | login do painel |
+| `SITE_URL` | o endereço que o Render der, ex.: `https://caderneta-zap.onrender.com` |
+| `PESSOAS` | `5511999999999=Thiago,5511988888888=Larissa` |
+| `WHATSAPP_*` | os quatro valores da Meta (passo 5 abaixo) |
+
+A aplicação entende o formato `postgresql://` do Neon sozinha e já usa a conexão direta, sem o `-pooler`. No plano grátis, o Render hiberna depois de 15 minutos sem uso. A primeira mensagem depois disso leva cerca de 1 minuto pra ser respondida (a Meta reenvia), e as próximas saem na hora. O "continuar conectado" do painel sobrevive às hibernações.
+
+## Alternativa: VM própria na Oracle Cloud
+
+### Colocando no ar (de graça)
 
 O caminho: **GitHub** guarda o código → **Oracle Cloud** roda uma VM grátis → **DuckDNS** dá um endereço grátis → **Caddy** coloca HTTPS → **Meta** manda as mensagens para o seu `/webhook`.
 

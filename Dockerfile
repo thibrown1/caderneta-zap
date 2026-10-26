@@ -13,5 +13,6 @@ RUN groupadd --system caderneta && useradd --system --gid caderneta caderneta
 COPY --from=build /app/target/caderneta-zap.jar app.jar
 USER caderneta
 EXPOSE 8080
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
+# Cabe nos 512 MB do Render grátis; no docker-compose da VM o JAVA_OPTS é outro.
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=50 -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=48m -Xss512k -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError"
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]

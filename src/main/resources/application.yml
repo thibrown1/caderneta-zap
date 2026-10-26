@@ -8,6 +8,9 @@ spring:
     password: ${DATABASE_PASSWORD:}
     hikari:
       maximum-pool-size: 5
+      # Fecha conexões paradas: assim o banco grátis do Neon consegue hibernar e não gasta horas à toa.
+      minimum-idle: 0
+      idle-timeout: 30000
   jpa:
     open-in-view: false
     hibernate:
@@ -35,7 +38,8 @@ caderneta:
   url-site: ${SITE_URL:http://localhost:8080}
   usuario: ${PAINEL_USUARIO:admin}
   senha: ${PAINEL_SENHA:}
-  lembrar-chave: ${PAINEL_LEMBRAR_CHAVE:troque-esta-chave}
+  # Opcional: sem ela, a chave do "continuar conectado" é derivada da senha.
+  lembrar-chave: ${PAINEL_LEMBRAR_CHAVE:}
   # Quem pode anotar pelo WhatsApp: 5511999999999=Thiago,5511988888888=Larissa
   pessoas: ${PESSOAS:}
   simulador-habilitado: ${SIMULADOR:false}

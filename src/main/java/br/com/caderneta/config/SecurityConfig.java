@@ -5,7 +5,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.HexFormat;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -54,7 +58,7 @@ public class SecurityConfig {
                         .failureUrl("/login?erro")
                         .permitAll())
                 .rememberMe(lembrar -> lembrar
-                        .key(props.lembrarChave())
+                        .key(chaveLembrar(props))
                         .rememberMeParameter("lembrar")
                         .tokenValiditySeconds((int) Duration.ofDays(60).toSeconds())
                         .userDetailsService(usuarios))
@@ -74,14 +78,35 @@ public class SecurityConfig {
     }
 
     @Bean
-    UserDetailsService usuarios(CadernetaProperties props, PasswordEncoder encoder) {
+    UserDetailsService usuarios(CadernetaProperties props) {
         if (!StringUtils.hasText(props.senha())) {
             throw new IllegalStateException("Defina a senha do painel na variável PAINEL_SENHA.");
         }
+        // A senha vem de variável de ambiente e fica só na memória. Guardada sem hash aleatório,
+        // o cookie "continuar conectado" continua valendo depois que o servidor reinicia
+        // (no Render grátis ele hiberna e reinicia toda hora).
         return new InMemoryUserDetailsManager(User.withUsername(props.usuario())
-                .password(encoder.encode(props.senha()))
+                .password("{noop}" + props.senha())
                 .roles("DONO")
                 .build());
+    }
+
+    /**
+     * Chave que assina o cookie "continuar conectado". Sem PAINEL_LEMBRAR_CHAVE, deriva uma da senha:
+     * trocar a senha desconecta todos os aparelhos, que é o esperado.
+     */
+    static String chaveLembrar(CadernetaProperties props) {
+        String chave = props.lembrarChave();
+        if (StringUtils.hasText(chave) && !"troque-esta-chave".equals(chave)) {
+            return chave;
+        }
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256")
+                    .digest(("caderneta-lembrar:" + props.usuario() + ":" + props.senha()).getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Bean
