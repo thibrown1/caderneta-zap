@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2451D4">
+<title>Entrar · Caderneta</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=IBM+Plex+Mono:wght@400&family=Instrument+Sans:wght@400..700&display=swap">
+<style>
+:root{--paper:#F4F6FA;--sheet:#FFFFFF;--ink:#15203A;--muted:#5E6A80;--rule:#DEE4EE;--pen:#2451D4;--on-pen:#FFFFFF;--margin:#D65446;--bad:#C23636;--bad-soft:#FAE3E1;--good-soft:#E2F2E9;
+  --f-display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;--f-body:"Instrument Sans",-apple-system,system-ui,sans-serif;--f-data:"IBM Plex Mono",ui-monospace,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--paper:#0D131F;--sheet:#141C2B;--ink:#E6EBF4;--muted:#96A2B8;--rule:#26324A;--pen:#8AA8FF;--on-pen:#0A1124;--margin:#E2685B;--bad:#F27B73;--bad-soft:#3B1B1E;--good-soft:#13302A;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);min-height:100%}
+body{color:var(--ink);font-family:var(--f-body);font-size:16px;display:grid;place-items:center;min-height:100dvh;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
+[hidden]{display:none!important}
+.card{width:100%;max-width:380px;background:var(--sheet);border:1px solid var(--rule);border-radius:18px;padding:28px 24px;display:grid;gap:18px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;top:0;bottom:0;left:18px;width:1px;background:var(--margin);box-shadow:3px 0 0 var(--margin);opacity:.45}
+.card > *{position:relative;margin-left:14px}
+.eyebrow{font-family:var(--f-data);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--margin)}
+h1{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.05;letter-spacing:-.02em;margin:4px 0 0}
+.field{display:grid;gap:7px}
+label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+input[type=text],input[type=password]{font:inherit;font-size:16px;padding:12px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink);width:100%;min-height:48px}
+input:focus-visible{outline:2px solid var(--pen);outline-offset:-1px;border-color:transparent}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:500}
+button{font:inherit;border:0;border-radius:12px;padding:14px 18px;font-weight:700;font-size:16px;cursor:pointer;background:var(--pen);color:var(--on-pen)}
+button:focus-visible{outline:2px solid var(--pen);outline-offset:3px}
+.msg{font-size:14px;margin:0;padding:10px 12px;border-radius:10px}
+.msg.erro{background:var(--bad-soft);color:var(--bad)}
+.msg.ok{background:var(--good-soft);color:var(--ink)}
+</style>
+</head>
+<body>
+<form class="card" method="post" action="/login" id="form">
+  <div>
+    <div class="eyebrow">Caderneta</div>
+    <h1>Gastos da casa</h1>
+  </div>
+  <p class="msg erro" id="erro" hidden>Usuário ou senha não conferem.</p>
+  <p class="msg ok" id="saiu" hidden>Você saiu. Até a próxima.</p>
+  <div class="field">
+    <label for="username">Usuário</label>
+    <input type="text" id="username" name="username" autocomplete="username" autocapitalize="none" required>
+  </div>
+  <div class="field">
+    <label for="password">Senha</label>
+    <input type="password" id="password" name="password" autocomplete="current-password" required>
+  </div>
+  <label class="check"><input type="checkbox" name="lembrar" id="lembrar" value="true" checked> Continuar conectado neste aparelho</label>
+  <input type="hidden" name="_csrf" id="csrf">
+  <button type="submit">Entrar</button>
+</form>
+<script>
+(() => {
+  const p = new URLSearchParams(location.search);
+  document.getElementById('erro').hidden = !p.has('erro');
+  document.getElementById('saiu').hidden = !p.has('saiu');
+  const token = () => { const m = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/); return m ? decodeURIComponent(m[1]) : ''; };
+  const form = document.getElementById('form');
+  document.getElementById('csrf').value = token();
+  form.addEventListener('submit', () => { document.getElementById('csrf').value = token(); });
+})();
+</script>
+</body>
+</html>

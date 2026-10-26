@@ -1,0 +1,61 @@
+# Sobe tudo na VM: banco (Postgres), a API e o Caddy (HTTPS automático com Let's Encrypt).
+# Uso: cp .env.example .env  →  preencha  →  docker compose up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: caderneta
+      POSTGRES_USER: caderneta
+      POSTGRES_PASSWORD: ${DB_SENHA:?Defina DB_SENHA no arquivo .env}
+    volumes:
+      - dados-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U caderneta -d caderneta"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/caderneta
+      DATABASE_USER: caderneta
+      DATABASE_PASSWORD: ${DB_SENHA}
+      SITE_URL: https://${DOMINIO:?Defina DOMINIO no arquivo .env}
+      PAINEL_USUARIO: ${PAINEL_USUARIO:-thiago}
+      PAINEL_SENHA: ${PAINEL_SENHA:?Defina PAINEL_SENHA no arquivo .env}
+      PAINEL_LEMBRAR_CHAVE: ${PAINEL_LEMBRAR_CHAVE:?Defina PAINEL_LEMBRAR_CHAVE no arquivo .env}
+      PESSOAS: ${PESSOAS:-}
+      WHATSAPP_TOKEN: ${WHATSAPP_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      WHATSAPP_API_VERSION: ${WHATSAPP_API_VERSION:-v23.0}
+      JAVA_OPTS: ${JAVA_OPTS:--Xmx384m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError}
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMINIO: ${DOMINIO}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-dados:/data
+      - caddy-config:/config
+
+volumes:
+  dados-postgres:
+  caddy-dados:
+  caddy-config:

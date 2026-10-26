@@ -1,0 +1,264 @@
+{
+  "info": {
+    "name": "Caderneta Zap",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API da Caderneta. Rode '1. Abrir login' e '2. Entrar' primeiro: o Postman guarda os cookies de sessão e o script da coleção manda o token CSRF em toda requisição."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "usuario",
+      "value": "thiago"
+    },
+    {
+      "key": "senha",
+      "value": "local123"
+    },
+    {
+      "key": "verifyToken",
+      "value": ""
+    },
+    {
+      "key": "gastoId",
+      "value": ""
+    },
+    {
+      "key": "xsrf",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const token = pm.cookies.get('XSRF-TOKEN');",
+          "if (token) {",
+          "  pm.collectionVariables.set('xsrf', token);",
+          "  pm.request.headers.upsert({ key: 'X-XSRF-TOKEN', value: token });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Login",
+      "item": [
+        {
+          "name": "1. Abrir login (pega o cookie CSRF)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/login"
+          }
+        },
+        {
+          "name": "2. Entrar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/login",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{usuario}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{senha}}"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{xsrf}}"
+                }
+              ]
+            },
+            "description": "Depois de entrar, o servidor redireciona para o painel (200 com HTML)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Resumo",
+      "item": [
+        {
+          "name": "Resumo da semana",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/resumo?periodo=semana&offset=0"
+          }
+        },
+        {
+          "name": "Resumo do mês passado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/resumo?periodo=mes&offset=-1"
+          }
+        },
+        {
+          "name": "Info do painel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/info"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gastos",
+      "item": [
+        {
+          "name": "Listar gastos (mês atual)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/gastos"
+          }
+        },
+        {
+          "name": "Criar gasto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valorCentavos\": 4590,\n  \"descricao\": \"gasolina\",\n  \"motivo\": \"tanque na reserva\",\n  \"autor\": \"Thiago\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('criou', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('gastoId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Editar gasto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/gastos/{{gastoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valorCentavos\": 5000,\n  \"descricao\": \"Gasolina\",\n  \"categoria\": \"TRANSPORTE\",\n  \"motivo\": \"completei o tanque\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Apagar gasto",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/gastos/{{gastoId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orçamento",
+      "item": [
+        {
+          "name": "Ver orçamento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/orcamento"
+          }
+        },
+        {
+          "name": "Definir orçamento (R$ 3.000)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orcamento",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valorMensalCentavos\": 300000\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bot",
+      "item": [
+        {
+          "name": "Simulador: anotar gasto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/simulador",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"de\": \"5511999999999\",\n  \"texto\": \"45,90 lanche porque não deu tempo\"\n}"
+            },
+            "description": "Só existe no perfil local (ou com SIMULADOR=true). Responde exatamente o que o bot mandaria no WhatsApp."
+          }
+        },
+        {
+          "name": "Simulador: resumo da semana",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/simulador",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"de\": \"5511999999999\",\n  \"texto\": \"semana\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Webhook: verificação da Meta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/webhook?hub.mode=subscribe&hub.verify_token={{verifyToken}}&hub.challenge=12345",
+            "description": "Deve devolver 12345 quando verifyToken for igual a WHATSAPP_VERIFY_TOKEN."
+          }
+        }
+      ]
+    }
+  ]
+}

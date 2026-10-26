@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:caderneta-teste;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+
+caderneta:
+  url-site: https://caderneta.teste
+  usuario: teste
+  senha: senha-teste
+  lembrar-chave: chave-teste
+  pessoas: 5511999998888=Thiago,5511988887777=Larissa
+  simulador-habilitado: true
+
+whatsapp:
+  token: token-graph
+  phone-number-id: "123456"
+  verify-token: token-teste
+  app-secret: segredo-teste

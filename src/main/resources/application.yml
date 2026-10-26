@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: caderneta-zap
+  datasource:
+    # Sem DATABASE_URL, usa um H2 em arquivo na pasta ./dados (bom para rodar no PC).
+    url: ${DATABASE_URL:jdbc:h2:file:./dados/caderneta;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
+    username: ${DATABASE_USER:sa}
+    password: ${DATABASE_PASSWORD:}
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+  # Atrás do Caddy (HTTPS), respeita o X-Forwarded-Proto para cookies seguros e redirecionamentos.
+  forward-headers-strategy: native
+  servlet:
+    session:
+      timeout: 7d
+      cookie:
+        same-site: lax
+  error:
+    include-message: never
+
+caderneta:
+  zona: ${ZONA:America/Sao_Paulo}
+  url-site: ${SITE_URL:http://localhost:8080}
+  usuario: ${PAINEL_USUARIO:admin}
+  senha: ${PAINEL_SENHA:}
+  lembrar-chave: ${PAINEL_LEMBRAR_CHAVE:troque-esta-chave}
+  # Quem pode anotar pelo WhatsApp: 5511999999999=Thiago,5511988888888=Larissa
+  pessoas: ${PESSOAS:}
+  simulador-habilitado: ${SIMULADOR:false}
+
+whatsapp:
+  token: ${WHATSAPP_TOKEN:}
+  phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+  verify-token: ${WHATSAPP_VERIFY_TOKEN:}
+  app-secret: ${WHATSAPP_APP_SECRET:}
+  api-version: ${WHATSAPP_API_VERSION:v23.0}
+  base-url: ${WHATSAPP_BASE_URL:https://graph.facebook.com}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

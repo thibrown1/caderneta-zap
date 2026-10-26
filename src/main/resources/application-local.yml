@@ -1,0 +1,11 @@
+# Perfil para brincar no PC: mvn spring-boot:run -Dspring-boot.run.profiles=local
+spring:
+  datasource:
+    url: jdbc:h2:file:./dados/caderneta-local;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+
+caderneta:
+  usuario: thiago
+  senha: local123
+  lembrar-chave: chave-local
+  pessoas: 5511999999999=Thiago,5511988888888=Larissa
+  simulador-habilitado: true
