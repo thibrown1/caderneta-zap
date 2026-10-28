@@ -61,7 +61,11 @@ public final class RespostasBot {
     }
 
     public static String resumo(ResumoCalculado r, List<Dica> dicas, String urlSite) {
-        String titulo = (r.periodo() == Periodo.SEMANA ? "Semana" : "Mês") + " · " + r.rotulo();
+        String titulo = switch (r.periodo()) {
+            case DIA -> "Dia";
+            case SEMANA -> "Semana";
+            case MES -> "Mês";
+        } + " · " + r.rotulo();
         StringBuilder sb = new StringBuilder("📊 *").append(titulo).append("*\n");
         if (r.lancamentos().isEmpty()) {
             sb.append("Nada anotado nesse período ainda. Manda tipo: *45,90 lanche*");
@@ -105,10 +109,11 @@ public final class RespostasBot {
         if (r.totalAnterior() == 0) {
             return "";
         }
-        boolean semana = r.periodo() == Periodo.SEMANA;
-        String referencia = r.emAndamento()
-                ? (semana ? "que no mesmo ponto da semana passada" : "que no mesmo ponto do mês passado")
-                : (semana ? "que na semana anterior" : "que no mês anterior");
+        String referencia = switch (r.periodo()) {
+            case DIA -> r.emAndamento() ? "que ontem até esta hora" : "que no dia anterior";
+            case SEMANA -> r.emAndamento() ? "que no mesmo ponto da semana passada" : "que na semana anterior";
+            case MES -> r.emAndamento() ? "que no mesmo ponto do mês passado" : "que no mês anterior";
+        };
         long diferenca = r.total() - r.totalAnterior();
         if (diferenca == 0) {
             return "Igual ao período anterior.";

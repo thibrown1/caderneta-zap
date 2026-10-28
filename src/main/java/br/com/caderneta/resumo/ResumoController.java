@@ -36,15 +36,16 @@ public class ResumoController {
     }
 
     /**
-     * @param periodo "semana" ou "mes"
+     * @param periodo "dia", "semana" ou "mes"
      * @param offset  0 = atual, -1 = anterior...
      */
     @GetMapping("/resumo")
-    public ResumoResponse resumo(@RequestParam(defaultValue = "semana") String periodo,
+    public ResumoResponse resumo(@RequestParam(defaultValue = "dia") String periodo,
                                  @RequestParam(defaultValue = "0") int offset) {
-        Periodo p = Periodo.de(periodo).orElseThrow(() -> new IllegalArgumentException("Use periodo=semana ou periodo=mes."));
-        if (offset > 0 || offset < -120) {
-            throw new IllegalArgumentException("O offset vai de -120 a 0.");
+        Periodo p = Periodo.de(periodo).orElseThrow(() -> new IllegalArgumentException("Use periodo=dia, periodo=semana ou periodo=mes."));
+        int limite = p == Periodo.DIA ? -730 : -120;
+        if (offset > 0 || offset < limite) {
+            throw new IllegalArgumentException("O offset vai de " + limite + " a 0.");
         }
         return ResumoResponse.de(servico.calcular(p, offset), props.zonaId());
     }

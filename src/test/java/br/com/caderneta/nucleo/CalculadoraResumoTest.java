@@ -42,6 +42,24 @@ class CalculadoraResumoTest {
     }
 
     @Test
+    void diaComparaComOntemAteAMesmaHoraEUsaOrcamentoDiario() {
+        List<Lancamento> dados = List.of(
+                l(18, 8, 30_00, Categoria.COMIDA_FORA, "Thiago"),
+                l(17, 9, 20_00, Categoria.COMIDA_FORA, "Thiago"),
+                l(17, 20, 90_00, Categoria.MERCADO, "Thiago"));
+        ResumoCalculado r = CalculadoraResumo.calcular(Periodo.DIA, 0, AGORA, dados, 3100_00);
+        assertEquals(30_00, r.total());
+        // ontem às 20h ainda não tinha chegado "na mesma hora" (meio-dia)
+        assertEquals(20_00, r.totalAnterior());
+        assertEquals(100_00, r.orcamentoPeriodo());
+        assertEquals(0.5, r.fracaoDecorrida(), 0.0001);
+        assertEquals("Domingo, 18 de out", r.rotulo());
+        assertEquals("↑ R$ 10,00 a mais que ontem até esta hora (+50%)", RespostasBot.comparacao(r));
+        List<Dica> dicas = GeradorDicas.gerar(r, AGORA);
+        assertEquals("Hoje ainda cabem R$ 70,00 no orçamento do dia.", dicas.get(0).texto());
+    }
+
+    @Test
     void agrupaPorCategoriaEPessoa() {
         ResumoCalculado r = CalculadoraResumo.calcular(Periodo.SEMANA, 0, AGORA, DADOS, 0);
         assertEquals(Categoria.MERCADO, r.porCategoria().get(0).categoria());

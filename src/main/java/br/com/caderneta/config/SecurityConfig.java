@@ -50,7 +50,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/webhook", "/login", "/login.html", "/privacidade", "/privacidade.html",
-                                "/favicon.svg", "/actuator/health", "/error").permitAll()
+                                "/favicon.svg", "/icone-180.png", "/actuator/health", "/error").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")

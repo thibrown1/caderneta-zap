@@ -7,12 +7,13 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
 
-/** Calcula semanas (segunda a domingo) e meses, e os nomes que aparecem para as pessoas. */
+/** Calcula dias, semanas (segunda a domingo) e meses, e os nomes que aparecem para as pessoas. */
 public final class Periodos {
 
     private static final String[] MESES = {"jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"};
     private static final String[] MESES_LONGOS = {"janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
             "agosto", "setembro", "outubro", "novembro", "dezembro"};
+    private static final String[] DIAS_DA_SEMANA = {"Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"};
 
     private Periodos() {
     }
@@ -23,6 +24,10 @@ public final class Periodos {
     public static Intervalo de(Periodo periodo, int offset, ZonedDateTime agora) {
         ZoneId zona = agora.getZone();
         LocalDate hoje = agora.toLocalDate();
+        if (periodo == Periodo.DIA) {
+            LocalDate dia = hoje.plusDays(offset);
+            return new Intervalo(dia.atStartOfDay(zona), dia.plusDays(1).atStartOfDay(zona));
+        }
         if (periodo == Periodo.SEMANA) {
             LocalDate segunda = hoje.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusWeeks(offset);
             return new Intervalo(segunda.atStartOfDay(zona), segunda.plusWeeks(1).atStartOfDay(zona));
@@ -31,9 +36,12 @@ public final class Periodos {
         return new Intervalo(primeiro.atStartOfDay(zona), primeiro.plusMonths(1).atStartOfDay(zona));
     }
 
-    /** "12 a 18 de out", "29 de set a 5 de out" ou "Outubro de 2026". */
+    /** "Domingo, 18 de out", "12 a 18 de out", "29 de set a 5 de out" ou "Outubro de 2026". */
     public static String rotulo(Periodo periodo, Intervalo intervalo) {
         LocalDate a = intervalo.inicio().toLocalDate();
+        if (periodo == Periodo.DIA) {
+            return DIAS_DA_SEMANA[a.getDayOfWeek().getValue() - 1] + ", " + a.getDayOfMonth() + " de " + mesCurto(a);
+        }
         if (periodo == Periodo.MES) {
             return Texto.capitalizar(mesLongo(a)) + " de " + a.getYear();
         }

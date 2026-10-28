@@ -13,6 +13,16 @@ class PeriodosTest {
     private static final ZonedDateTime AGORA = ZonedDateTime.of(2026, 10, 18, 6, 8, 0, 0, SP);
 
     @Test
+    void diaVaiDaMeiaNoiteAteAMeiaNoite() {
+        Intervalo hoje = Periodos.de(Periodo.DIA, 0, AGORA);
+        assertEquals(ZonedDateTime.of(2026, 10, 18, 0, 0, 0, 0, SP), hoje.inicio());
+        assertEquals(ZonedDateTime.of(2026, 10, 19, 0, 0, 0, 0, SP), hoje.fim());
+        assertEquals("Domingo, 18 de out", Periodos.rotulo(Periodo.DIA, hoje));
+        assertEquals("Quarta, 30 de set", Periodos.rotulo(Periodo.DIA, Periodos.de(Periodo.DIA, -18, AGORA)));
+        assertEquals(Periodo.DIA, Periodo.de("dia").orElseThrow());
+    }
+
+    @Test
     void semanaVaiDeSegundaADomingo() {
         Intervalo iv = Periodos.de(Periodo.SEMANA, 0, AGORA);
         assertEquals(ZonedDateTime.of(2026, 10, 12, 0, 0, 0, 0, SP), iv.inicio());

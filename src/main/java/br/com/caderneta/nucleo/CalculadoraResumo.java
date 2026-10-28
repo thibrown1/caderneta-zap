@@ -46,8 +46,12 @@ public final class CalculadoraResumo {
 
         long orcamentoPeriodo = 0;
         if (orcamentoMensal > 0) {
-            orcamentoPeriodo = periodo == Periodo.MES ? orcamentoMensal
-                    : Math.round(orcamentoMensal * 7.0 / atual.inicio().toLocalDate().lengthOfMonth());
+            int diasNoMes = atual.inicio().toLocalDate().lengthOfMonth();
+            orcamentoPeriodo = switch (periodo) {
+                case MES -> orcamentoMensal;
+                case SEMANA -> Math.round(orcamentoMensal * 7.0 / diasNoMes);
+                case DIA -> Math.round((double) orcamentoMensal / diasNoMes);
+            };
         }
 
         return new ResumoCalculado(periodo, offset, atual, Periodos.rotulo(periodo, atual), emAndamento, fracao,
