@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2451D4">
+<title>Política de Privacidade · Caderneta</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root{--paper:#F4F6FA;--sheet:#FFFFFF;--ink:#15203A;--muted:#5E6A80;--rule:#DEE4EE;--pen:#2451D4;--margin:#D65446;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--paper:#0D131F;--sheet:#141C2B;--ink:#E6EBF4;--muted:#96A2B8;--rule:#26324A;--pen:#8AA8FF;--margin:#E2685B;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper)}
+body{color:var(--ink);font-family:-apple-system,system-ui,"Segoe UI",sans-serif;font-size:16px;line-height:1.6;
+  padding:32px max(16px,env(safe-area-inset-left,0px)) 48px max(16px,env(safe-area-inset-right,0px))}
+main{max-width:680px;margin:0 auto;background:var(--sheet);border:1px solid var(--rule);border-radius:18px;padding:28px 24px}
+.eyebrow{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--margin)}
+h1{font-size:28px;line-height:1.15;margin:4px 0 4px}
+h2{font-size:18px;margin:28px 0 6px}
+p,li{margin:0 0 10px}
+ul{padding-left:20px;margin:0 0 10px}
+.data{color:var(--muted);font-size:14px;margin-bottom:20px}
+a{color:var(--pen)}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Caderneta</div>
+  <h1>Política de Privacidade</h1>
+  <p class="data">Última atualização: 28 de outubro de 2026</p>
+
+  <p>A Caderneta é uma ferramenta pessoal de controle de gastos. Os gastos são anotados por mensagem no WhatsApp
+    e consultados num painel na web. Ela é usada só pelo dono e pelas pessoas que ele mesmo cadastrou. Não é um serviço aberto ao público.</p>
+
+  <h2>Que dados são guardados</h2>
+  <ul>
+    <li>O conteúdo das mensagens enviadas ao número da Caderneta: valor, descrição, motivo, categoria, data e hora do gasto.</li>
+    <li>O número de telefone de quem enviou, para saber de quem é cada gasto.</li>
+    <li>O identificador técnico da mensagem no WhatsApp, usado para não registrar a mesma mensagem duas vezes.</li>
+  </ul>
+  <p>Mensagens de números que não foram cadastrados pelo dono são descartadas e não vão para o banco de dados.
+    Só o número aparece por alguns dias no registro técnico do servidor, que é apagado automaticamente.</p>
+
+  <h2>Para que os dados são usados</h2>
+  <p>Só para registrar os gastos, responder no WhatsApp e mostrar os totais da semana e do mês, além de dicas de economia.
+    Não há anúncios, venda de dados, criação de perfis nem compartilhamento com terceiros.</p>
+
+  <h2>Onde ficam</h2>
+  <p>O aplicativo roda no Render e o banco de dados fica no Neon (PostgreSQL), com conexão criptografada.
+    As mensagens passam pela plataforma do WhatsApp Business da Meta, que tem a própria
+    <a href="https://www.whatsapp.com/legal/privacy-policy" rel="noopener">política de privacidade</a>.
+    O painel exige usuário e senha.</p>
+
+  <h2>Por quanto tempo</h2>
+  <p>Os gastos ficam guardados até o dono apagá-los, o que pode ser feito a qualquer momento pelo painel.</p>
+
+  <h2>Seus direitos e como apagar seus dados</h2>
+  <p>Quem enviou gastos pode pedir para ver, corrigir ou apagar os próprios dados a qualquer momento, como garante a LGPD
+    (Lei nº 13.709/2018). Basta pedir ao dono da Caderneta ou abrir um pedido em
+    <a href="https://github.com/thibrown1/caderneta-zap/issues" rel="noopener">github.com/thibrown1/caderneta-zap</a>.
+    Os dados são apagados do banco em até 30 dias.</p>
+
+  <h2>Contato</h2>
+  <p>Dúvidas sobre esta política: <a href="https://github.com/thibrown1/caderneta-zap/issues" rel="noopener">github.com/thibrown1/caderneta-zap/issues</a>.</p>
+</main>
+</body>
+</html>

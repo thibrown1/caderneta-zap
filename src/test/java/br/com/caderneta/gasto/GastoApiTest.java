@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -60,6 +61,12 @@ class GastoApiTest {
     @Test
     void painelRedirecionaParaOLogin() throws Exception {
         mvc.perform(get("/")).andExpect(status().is3xxRedirection()).andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void politicaDePrivacidadeEhPublica() throws Exception {
+        mvc.perform(get("/privacidade")).andExpect(status().isOk()).andExpect(forwardedUrl("/privacidade.html"));
+        mvc.perform(get("/privacidade.html")).andExpect(status().isOk());
     }
 
     @Test

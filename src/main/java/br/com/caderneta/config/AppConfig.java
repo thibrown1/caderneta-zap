@@ -24,5 +24,7 @@ public class AppConfig implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/login").setViewName("forward:/login.html");
+        // Página pública exigida pela Meta para publicar o app do WhatsApp.
+        registry.addViewController("/privacidade").setViewName("forward:/privacidade.html");
     }
 }
