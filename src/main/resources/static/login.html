@@ -46,11 +46,12 @@ button:focus-visible{outline:2px solid var(--pen);outline-offset:3px}
   <div class="hero">
     <img src="/favicon.svg" alt="">
     <h1>GastosXP</h1>
-    <p>Seus gastos da semana e do mês.</p>
+    <p>Seus gastos do dia, da semana e do mês.</p>
   </div>
   <form method="post" action="/login" id="form">
     <p class="msg erro" id="erro" hidden>Usuário ou senha não conferem. Confira e tente de novo.</p>
     <p class="msg ok" id="saiu" hidden>Você saiu da sua conta.</p>
+    <p class="msg ok" id="criado" hidden>Conta criada! Entre com o usuário e a senha que você escolheu.</p>
     <div class="field">
       <label for="username">Usuário</label>
       <input type="text" id="username" name="username" autocomplete="username" autocapitalize="none" required>
@@ -69,6 +70,9 @@ button:focus-visible{outline:2px solid var(--pen);outline-offset:3px}
   const p = new URLSearchParams(location.search);
   document.getElementById('erro').hidden = !p.has('erro');
   document.getElementById('saiu').hidden = !p.has('saiu');
+  document.getElementById('criado').hidden = !p.has('criado');
+  const u = p.get('u');
+  if (u && /^[a-z0-9._-]{3,30}$/.test(u)) { document.getElementById('username').value = u; document.getElementById('password').focus(); }
   const token = () => { const m = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/); return m ? decodeURIComponent(m[1]) : ''; };
   const form = document.getElementById('form');
   document.getElementById('csrf').value = token();

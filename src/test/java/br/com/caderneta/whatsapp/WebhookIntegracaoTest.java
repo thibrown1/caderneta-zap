@@ -97,6 +97,8 @@ class WebhookIntegracaoTest {
 
         Gasto g = gastos.findAll().get(0);
         assertThat(g.getAutor()).isEqualTo("Thiago");
+        // Sem conta com o nome "Thiago", o gasto fica com o dono do painel.
+        assertThat(g.getDono()).isEqualTo("teste");
         assertThat(g.getCategoria()).isEqualTo(Categoria.COMIDA_FORA);
         assertThat(g.getTelefone()).isEqualTo("5511999998888");
         assertThat(g.getWaMessageId()).isEqualTo("wamid.1");

@@ -17,7 +17,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Busca no banco só o necessário (período atual + anterior) e entrega para o núcleo calcular. */
+/** Busca no banco só o necessário (período atual + anterior) da pessoa e entrega para o núcleo calcular. */
 @Service
 @Transactional(readOnly = true)
 public class ResumoService {
@@ -41,14 +41,14 @@ public class ResumoService {
         return ZonedDateTime.now(clock).withZoneSameInstant(props.zonaId());
     }
 
-    public Calculo calcular(Periodo periodo, int offset) {
+    public Calculo calcular(String dono, Periodo periodo, int offset) {
         ZonedDateTime agora = agora();
         Intervalo atual = Periodos.de(periodo, offset, agora);
         Intervalo anterior = Periodos.de(periodo, offset - 1, agora);
-        List<Gasto> encontrados = gastos.findByQuandoGreaterThanEqualAndQuandoLessThanOrderByQuandoDesc(
-                anterior.inicio().toInstant(), atual.fim().toInstant());
+        List<Gasto> encontrados = gastos.findByDonoAndQuandoGreaterThanEqualAndQuandoLessThanOrderByQuandoDesc(
+                dono, anterior.inicio().toInstant(), atual.fim().toInstant());
         ResumoCalculado resumo = CalculadoraResumo.calcular(periodo, offset, agora,
-                encontrados.stream().map(Gasto::paraLancamento).toList(), orcamento.mensal());
+                encontrados.stream().map(Gasto::paraLancamento).toList(), orcamento.mensal(dono));
         List<Gasto> doPeriodo = encontrados.stream().filter(g -> atual.contem(g.getQuando())).toList();
         return new Calculo(resumo, GeradorDicas.gerar(resumo, agora), doPeriodo, agora);
     }

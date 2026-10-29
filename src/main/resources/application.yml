@@ -11,6 +11,10 @@ spring:
       # Fecha conexões paradas: assim o banco grátis do Neon consegue hibernar e não gasta horas à toa.
       minimum-idle: 0
       idle-timeout: 30000
+  flyway:
+    placeholders:
+      # Dono dos gastos que existiam antes de ter mais de um usuário.
+      dono_padrao: ${caderneta.usuario}
   jpa:
     open-in-view: false
     hibernate:

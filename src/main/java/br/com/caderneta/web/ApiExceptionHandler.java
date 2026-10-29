@@ -1,6 +1,7 @@
 package br.com.caderneta.web;
 
 import br.com.caderneta.gasto.GastoNaoEncontradoException;
+import br.com.caderneta.usuario.ConviteInvalidoException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,13 @@ public class ApiExceptionHandler {
     ProblemDetail naoEncontrado(GastoNaoEncontradoException e) {
         ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
         p.setTitle("Gasto não encontrado");
+        return p;
+    }
+
+    @ExceptionHandler(ConviteInvalidoException.class)
+    ProblemDetail conviteInvalido(ConviteInvalidoException e) {
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.GONE, e.getMessage());
+        p.setTitle("Convite inválido");
         return p;
     }
 

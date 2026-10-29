@@ -12,6 +12,7 @@ import br.com.caderneta.nucleo.RespostasBot;
 import br.com.caderneta.nucleo.Telefones;
 import br.com.caderneta.orcamento.OrcamentoService;
 import br.com.caderneta.resumo.ResumoService;
+import br.com.caderneta.usuario.UsuarioService;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -33,9 +34,11 @@ public class BotService {
     private final CadastroPessoas pessoas;
     private final CadernetaProperties props;
     private final MensagensProcessadas processadas;
+    private final UsuarioService usuarios;
 
     public BotService(GastoService gastos, ResumoService resumos, OrcamentoService orcamento, WhatsAppClient whatsApp,
-                      CadastroPessoas pessoas, CadernetaProperties props, MensagensProcessadas processadas) {
+                      CadastroPessoas pessoas, CadernetaProperties props, MensagensProcessadas processadas,
+                      UsuarioService usuarios) {
         this.gastos = gastos;
         this.resumos = resumos;
         this.orcamento = orcamento;
@@ -43,6 +46,7 @@ public class BotService {
         this.pessoas = pessoas;
         this.props = props;
         this.processadas = processadas;
+        this.usuarios = usuarios;
     }
 
     /** Roda fora da requisição do webhook, porque a Meta espera resposta 200 rápida. */
@@ -77,6 +81,8 @@ public class BotService {
         if (!"text".equals(mensagem.tipo()) || mensagem.texto() == null || mensagem.texto().isBlank()) {
             return Optional.of(RespostasBot.soTexto());
         }
+        // Os gastos vão para a conta da pessoa (nome em PESSOAS = nome ou login da conta); sem conta, para o dono.
+        String dono = usuarios.loginPorNome(autor.get());
 
         ZonedDateTime agora = resumos.agora();
         Comando comando = MensagemParser.interpretar(mensagem.texto(), agora.toLocalDate());
@@ -86,23 +92,23 @@ public class BotService {
         String url = props.urlSite();
 
         String resposta = switch (comando) {
-            case Comando.NovoGasto g -> anotar(g, autor.get(), numero, mensagem.id(), agora);
+            case Comando.NovoGasto g -> anotar(dono, g, autor.get(), numero, mensagem.id(), agora);
             case Comando.Resumo r -> {
-                var calculo = resumos.calcular(r.periodo(), r.offset());
+                var calculo = resumos.calcular(dono, r.periodo(), r.offset());
                 yield RespostasBot.resumo(calculo.resumo(), calculo.dicas(), url);
             }
-            case Comando.Hoje h -> RespostasBot.hoje(lancamentosDeHoje(agora), agora);
-            case Comando.Ultimos u -> RespostasBot.ultimos(gastos.ultimos().stream().map(Gasto::paraLancamento).toList(), agora);
+            case Comando.Hoje h -> RespostasBot.hoje(lancamentosDeHoje(dono, agora), agora);
+            case Comando.Ultimos u -> RespostasBot.ultimos(gastos.ultimos(dono).stream().map(Gasto::paraLancamento).toList(), agora);
             case Comando.ApagarUltimo a -> gastos.apagarUltimoDe(numero)
                     .map(g -> RespostasBot.apagado(g.paraLancamento(), agora))
                     .orElseGet(RespostasBot::nadaParaApagar);
             case Comando.Dicas d -> {
-                var mes = resumos.calcular(Periodo.MES, 0);
+                var mes = resumos.calcular(dono, Periodo.MES, 0);
                 yield RespostasBot.dicas(mes.dicas(), mes.resumo());
             }
             case Comando.DefinirOrcamento o -> {
-                orcamento.definir(o.valorCentavos());
-                yield RespostasBot.orcamentoDefinido(o.valorCentavos(), resumos.calcular(Periodo.MES, 0).resumo());
+                orcamento.definir(dono, o.valorCentavos());
+                yield RespostasBot.orcamentoDefinido(o.valorCentavos(), resumos.calcular(dono, Periodo.MES, 0).resumo());
             }
             case Comando.Site s -> RespostasBot.site(url);
             case Comando.Ajuda a -> RespostasBot.ajuda(url);
@@ -112,15 +118,15 @@ public class BotService {
         return Optional.of(resposta);
     }
 
-    private String anotar(Comando.NovoGasto g, String autor, String numero, String idMensagem, ZonedDateTime agora) {
-        Gasto salvo = gastos.criarPeloWhatsApp(new GastoService.DadosGasto(g.valorCentavos(), g.descricao(), g.categoria(),
+    private String anotar(String dono, Comando.NovoGasto g, String autor, String numero, String idMensagem, ZonedDateTime agora) {
+        Gasto salvo = gastos.criarPeloWhatsApp(dono, new GastoService.DadosGasto(g.valorCentavos(), g.descricao(), g.categoria(),
                 g.motivo(), g.quando(agora).toInstant(), autor), numero, idMensagem);
         log.info("{} anotou {} centavos em '{}'", autor, salvo.getValorCentavos(), salvo.getDescricao());
-        return RespostasBot.gastoAnotado(salvo.paraLancamento(), agora, resumos.calcular(Periodo.SEMANA, 0).resumo());
+        return RespostasBot.gastoAnotado(salvo.paraLancamento(), agora, resumos.calcular(dono, Periodo.SEMANA, 0).resumo());
     }
 
-    private List<Lancamento> lancamentosDeHoje(ZonedDateTime agora) {
+    private List<Lancamento> lancamentosDeHoje(String dono, ZonedDateTime agora) {
         var inicio = agora.toLocalDate().atStartOfDay(agora.getZone());
-        return gastos.listar(inicio.toInstant(), inicio.plusDays(1).toInstant()).stream().map(Gasto::paraLancamento).toList();
+        return gastos.listar(dono, inicio.toInstant(), inicio.plusDays(1).toInstant()).stream().map(Gasto::paraLancamento).toList();
     }
 }

@@ -16,7 +16,7 @@ public final class RespostasBot {
 
     public static String ajuda(String urlSite) {
         return """
-                Oi! Eu sou a *Caderneta* 📒
+                Oi! Eu sou o *GastosXP* 💸
                 Pra anotar um gasto, manda o valor e o que foi:
 
                 • 45,90 lanche
@@ -198,7 +198,7 @@ public final class RespostasBot {
     }
 
     public static String numeroNaoCadastrado(String numero) {
-        return "Oi! Esse número (" + numero + ") ainda não está liberado na Caderneta.\n"
+        return "Oi! Esse número (" + numero + ") ainda não está liberado no GastosXP.\n"
                 + "No servidor, coloque na variável PESSOAS assim: PESSOAS=" + numero + "=SeuNome";
     }
 

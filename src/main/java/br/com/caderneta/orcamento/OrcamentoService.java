@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class OrcamentoService {
 
-    static final String CHAVE = "orcamento_mensal_centavos";
+    static final String PREFIXO = "orcamento_mensal_centavos:";
 
     private final ConfiguracaoRepository repositorio;
 
@@ -16,10 +16,10 @@ public class OrcamentoService {
         this.repositorio = repositorio;
     }
 
-    /** Orçamento do mês em centavos; 0 quando não foi definido. */
+    /** Orçamento do mês da pessoa, em centavos; 0 quando não foi definido. */
     @Transactional(readOnly = true)
-    public long mensal() {
-        return repositorio.findById(CHAVE).map(c -> {
+    public long mensal(String dono) {
+        return repositorio.findById(PREFIXO + dono).map(c -> {
             try {
                 return Long.parseLong(c.getValor());
             } catch (NumberFormatException e) {
@@ -28,12 +28,13 @@ public class OrcamentoService {
         }).orElse(0L);
     }
 
-    public long definir(long centavos) {
+    public long definir(String dono, long centavos) {
         if (centavos < 0 || centavos > Dinheiro.MAXIMO_CENTAVOS) {
             throw new IllegalArgumentException("Orçamento inválido.");
         }
         String valor = String.valueOf(centavos);
-        repositorio.findById(CHAVE).ifPresentOrElse(c -> c.setValor(valor), () -> repositorio.save(new Configuracao(CHAVE, valor)));
+        String chave = PREFIXO + dono;
+        repositorio.findById(chave).ifPresentOrElse(c -> c.setValor(valor), () -> repositorio.save(new Configuracao(chave, valor)));
         return centavos;
     }
 }

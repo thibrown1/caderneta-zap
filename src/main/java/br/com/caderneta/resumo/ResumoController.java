@@ -2,9 +2,9 @@ package br.com.caderneta.resumo;
 
 import br.com.caderneta.config.CadernetaProperties;
 import br.com.caderneta.config.WhatsAppProperties;
-import br.com.caderneta.nucleo.CadastroPessoas;
 import br.com.caderneta.nucleo.Categoria;
 import br.com.caderneta.nucleo.Periodo;
+import br.com.caderneta.usuario.UsuarioAtual;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,13 +26,11 @@ public class ResumoController {
     private final ResumoService servico;
     private final CadernetaProperties props;
     private final WhatsAppProperties whatsApp;
-    private final CadastroPessoas pessoas;
 
-    public ResumoController(ResumoService servico, CadernetaProperties props, WhatsAppProperties whatsApp, CadastroPessoas pessoas) {
+    public ResumoController(ResumoService servico, CadernetaProperties props, WhatsAppProperties whatsApp) {
         this.servico = servico;
         this.props = props;
         this.whatsApp = whatsApp;
-        this.pessoas = pessoas;
     }
 
     /**
@@ -47,13 +45,13 @@ public class ResumoController {
         if (offset > 0 || offset < limite) {
             throw new IllegalArgumentException("O offset vai de " + limite + " a 0.");
         }
-        return ResumoResponse.de(servico.calcular(p, offset), props.zonaId());
+        return ResumoResponse.de(servico.calcular(UsuarioAtual.login(), p, offset), props.zonaId());
     }
 
-    /** Dados fixos que o painel usa para montar os formulários. */
+    /** Dados fixos que o painel usa para montar os formulários. Cada conta é de uma pessoa só, então não há lista de quem gastou. */
     @GetMapping("/info")
     public Info info() {
-        return new Info(props.usuario(), pessoas.nomes(),
+        return new Info(UsuarioAtual.login(), List.of(),
                 Arrays.stream(Categoria.values()).map(c -> new CategoriaInfo(c.name(), c.nome())).toList(),
                 props.urlSite(), whatsApp.podeEnviar());
     }

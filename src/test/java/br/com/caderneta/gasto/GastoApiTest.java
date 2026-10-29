@@ -1,6 +1,7 @@
 package br.com.caderneta.gasto;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -96,6 +97,24 @@ class GastoApiTest {
 
         mvc.perform(delete("/api/gastos/{id}", id).with(csrf())).andExpect(status().isNoContent());
         mvc.perform(get("/api/gastos/{id}", id)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void cadaContaVeSoOsProprios() throws Exception {
+        String id = JsonPath.read(mvc.perform(post("/api/gastos").with(user("ana")).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"valorCentavos\":3000,\"descricao\":\"Cinema\",\"quando\":\"2026-10-17T20:00:00-03:00\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.autor").value("Ana"))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+
+        mvc.perform(get("/api/gastos").with(user("bia")).param("de", "2026-10-01").param("ate", "2026-10-31"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(get("/api/gastos/{id}", id).with(user("bia"))).andExpect(status().isNotFound());
+        mvc.perform(delete("/api/gastos/{id}", id).with(user("bia")).with(csrf())).andExpect(status().isNotFound());
+        mvc.perform(get("/api/resumo").with(user("bia")).param("periodo", "mes")).andExpect(jsonPath("$.total").value(0));
+
+        mvc.perform(get("/api/gastos/{id}", id).with(user("ana"))).andExpect(status().isOk());
+        mvc.perform(get("/api/resumo").with(user("ana")).param("periodo", "mes")).andExpect(jsonPath("$.total").value(3000));
     }
 
     @Test

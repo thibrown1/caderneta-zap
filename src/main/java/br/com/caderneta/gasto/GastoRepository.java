@@ -9,14 +9,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface GastoRepository extends JpaRepository<Gasto, UUID> {
 
-    List<Gasto> findByQuandoGreaterThanEqualAndQuandoLessThanOrderByQuandoDesc(Instant inicio, Instant fim);
+    List<Gasto> findByDonoAndQuandoGreaterThanEqualAndQuandoLessThanOrderByQuandoDesc(String dono, Instant inicio, Instant fim);
+
+    Optional<Gasto> findByIdAndDono(UUID id, String dono);
 
     Optional<Gasto> findFirstByTelefoneOrderByCriadoEmDesc(String telefone);
 
-    List<Gasto> findTop8ByOrderByQuandoDesc();
+    List<Gasto> findTop8ByDonoOrderByQuandoDesc(String dono);
 
     boolean existsByWaMessageId(String waMessageId);
 
-    /** Último gasto com a mesma descrição, para repetir a categoria usada antes. */
-    Optional<Gasto> findFirstByDescricaoIgnoreCaseAndCategoriaNotOrderByQuandoDesc(String descricao, Categoria categoria);
+    /** Último gasto da pessoa com a mesma descrição, para repetir a categoria usada antes. */
+    Optional<Gasto> findFirstByDonoAndDescricaoIgnoreCaseAndCategoriaNotOrderByQuandoDesc(String dono, String descricao,
+                                                                                       Categoria categoria);
 }

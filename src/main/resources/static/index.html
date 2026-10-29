@@ -49,6 +49,7 @@ button,input,select{font:inherit;color:inherit}
 .icon-btn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:999px;border:0;background:var(--card);cursor:pointer;font-size:14px;font-weight:600;box-shadow:var(--lift)}
 .icon-btn svg{width:18px;height:18px}
 .icon-btn.quiet{background:transparent;box-shadow:none;color:var(--muted);font-weight:500}
+.avatar{width:40px;height:40px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;font-weight:700;font-size:16px;color:#fff;background:var(--cta);box-shadow:var(--lift)}
 
 /* período */
 .period{display:grid;gap:14px}
@@ -177,6 +178,22 @@ dialog.sheet[open]{animation:subir .28s cubic-bezier(.2,.8,.2,1)}
 .btn.danger.armed{background:var(--bad);color:#fff}
 .btn:disabled{opacity:.6;cursor:default}
 .err{color:var(--bad);font-size:14px;margin:0}
+.me{display:flex;align-items:center;gap:14px}
+.me .avatar{width:52px;height:52px;font-size:21px;cursor:default}
+.me b{display:block;font-size:18px}
+.me small{display:block;color:var(--muted);font-size:14px}
+h4{font-size:16px;font-weight:700;margin:0}
+.pessoas{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.pessoas li{display:flex;align-items:center;gap:12px;padding:8px 0}
+.pessoas .avatar{width:34px;height:34px;font-size:14px;cursor:default;background:var(--soft);color:var(--ink);box-shadow:none}
+.pessoas small{color:var(--muted);font-size:13px;display:block}
+.pessoas .tag{margin-left:auto}
+.convite{display:grid;gap:10px;padding:14px;border-radius:18px;background:var(--soft)}
+.convite .input{background:var(--card);font-size:14px}
+.btn.secundario{background:var(--soft);color:var(--ink);text-align:center;text-decoration:none;flex:1 1 140px}
+.convite .btn.secundario{background:var(--card);display:flex;align-items:center;justify-content:center}
+.btn.sair{width:100%;background:transparent;color:var(--bad);border:1.5px solid var(--bad-soft)}
+.grupo{display:grid;gap:12px;padding-top:18px;border-top:1px solid var(--line)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -189,7 +206,7 @@ dialog.sheet[open]{animation:subir .28s cubic-bezier(.2,.8,.2,1)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.8" fill="currentColor"/></svg>
         Orçamento
       </button>
-      <form method="post" action="/logout" id="sairForm"><input type="hidden" name="_csrf" id="sairCsrf"><button class="icon-btn quiet" type="submit">Sair</button></form>
+      <button class="avatar" id="btnConta" type="button" aria-label="Sua conta">·</button>
     </div>
   </header>
 
@@ -297,6 +314,70 @@ dialog.sheet[open]{animation:subir .28s cubic-bezier(.2,.8,.2,1)}
     <p class="err" id="cErr" hidden></p>
     <div class="actions"><button type="submit" class="btn primary" id="cSave">Salvar orçamento</button></div>
   </form>
+</dialog>
+
+<dialog class="sheet" id="conta" aria-labelledby="contaTitulo">
+  <div class="sheet-inner">
+    <span class="grab" aria-hidden="true"></span>
+    <div class="sheet-head">
+      <h3 id="contaTitulo">Sua conta</h3>
+      <button type="button" class="x" id="contaFechar" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="me"><span class="avatar" id="contaInicial" aria-hidden="true">·</span><div><b id="contaNome">&nbsp;</b><small id="contaLogin">&nbsp;</small></div></div>
+    <section class="grupo" id="pessoasSec" hidden>
+      <h4>Pessoas no GastosXP</h4>
+      <p class="hint">Cada pessoa entra com o próprio usuário e vê só os próprios gastos.</p>
+      <ul class="pessoas" id="pessoasLista"></ul>
+      <button type="button" class="btn primary" id="btnConvite">Gerar link de convite</button>
+      <div class="convite" id="conviteBox" hidden>
+        <label class="flabel" for="conviteLink">Link de convite</label>
+        <input class="input" id="conviteLink" readonly>
+        <div class="actions">
+          <button type="button" class="btn secundario" id="conviteCopiar">Copiar link</button>
+          <a class="btn secundario" id="conviteWhats" href="#" target="_blank" rel="noopener">Mandar no WhatsApp</a>
+        </div>
+        <p class="hint" id="conviteValidade"></p>
+      </div>
+      <p class="err" id="conviteErr" hidden></p>
+      <button type="button" class="btn secundario" id="btnNovaConta">Criar conta agora, sem link</button>
+      <form class="convite" id="novaContaForm" hidden novalidate>
+        <div class="field">
+          <label class="flabel" for="ncNome">Nome</label>
+          <input class="input" id="ncNome" maxlength="40" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="flabel" for="ncLogin">Usuário <span>(para entrar no site)</span></label>
+          <input class="input" id="ncLogin" maxlength="30" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label class="flabel" for="ncSenha">Senha <span>(pelo menos 6 caracteres)</span></label>
+          <input class="input" id="ncSenha" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <p class="err" id="ncErr" hidden></p>
+        <button type="submit" class="btn primary" id="ncSalvar">Criar conta</button>
+      </form>
+    </section>
+    <section class="grupo">
+      <button type="button" class="btn secundario" id="btnTrocarSenha">Trocar minha senha</button>
+      <form class="convite" id="senhaForm" hidden novalidate>
+        <div class="field">
+          <label class="flabel" for="tsAtual">Senha atual</label>
+          <input class="input" id="tsAtual" type="password" autocomplete="current-password">
+        </div>
+        <div class="field">
+          <label class="flabel" for="tsNova">Nova senha <span>(pelo menos 6 caracteres)</span></label>
+          <input class="input" id="tsNova" type="password" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label class="flabel" for="tsNova2">Repita a nova senha</label>
+          <input class="input" id="tsNova2" type="password" autocomplete="new-password">
+        </div>
+        <p class="err" id="tsErr" hidden></p>
+        <button type="submit" class="btn primary" id="tsSalvar">Salvar nova senha</button>
+      </form>
+    </section>
+    <form method="post" action="/logout" id="sairForm" class="grupo"><input type="hidden" name="_csrf" id="sairCsrf"><button class="btn sair" type="submit">Sair da conta</button></form>
+  </div>
 </dialog>
 
 <script>
@@ -610,6 +691,107 @@ dialog.sheet[open]{animation:subir .28s cubic-bezier(.2,.8,.2,1)}
     finally { btn.disabled = false; }
   });
 
+  /* ---------- conta e convites ---------- */
+  const conta = $('#conta');
+  const inicial = (nome) => ((nome || '?').trim()[0] || '?').toUpperCase();
+  function mostrarConta(c) {
+    S.conta = c;
+    $('#btnConta').textContent = inicial(c.nome);
+    $('#btnConta').setAttribute('aria-label', 'Sua conta: ' + c.nome);
+    $('#contaInicial').textContent = inicial(c.nome);
+    $('#contaNome').textContent = c.nome;
+    $('#contaLogin').textContent = 'Usuário: ' + c.login;
+    $('#pessoasSec').hidden = !c.admin;
+  }
+  async function carregarPessoas() {
+    const lista = $('#pessoasLista');
+    try {
+      const pessoas = await api('/api/usuarios');
+      lista.replaceChildren(...pessoas.map(p => h('li', null,
+        h('span', { class: 'avatar', 'aria-hidden': 'true', text: inicial(p.nome) }),
+        h('span', null, p.nome, h('small', null, 'Usuário: ' + p.login)),
+        p.admin ? h('span', { class: 'tag IDEIA', text: 'Dono' }) : null)));
+    } catch (e) { lista.replaceChildren(h('li', { class: 'hint', text: e.message })); }
+  }
+  $('#btnConta').onclick = () => {
+    $('#conviteBox').hidden = true; $('#conviteErr').hidden = true;
+    $('#novaContaForm').hidden = true; $('#senhaForm').hidden = true;
+    if (S.conta && S.conta.admin) carregarPessoas();
+    conta.showModal();
+  };
+  $('#contaFechar').onclick = () => conta.close();
+  conta.addEventListener('click', (e) => { if (e.target === conta) conta.close(); });
+  $('#btnConvite').onclick = async () => {
+    const btn = $('#btnConvite'); btn.disabled = true; $('#conviteErr').hidden = true;
+    try {
+      const c = await api('/api/convites', { method: 'POST' });
+      $('#conviteLink').value = c.link;
+      $('#conviteValidade').textContent = 'O link não expira e serve uma vez, só para criar a conta. A conta criada é permanente, igual à sua.';
+      const texto = 'Oi! Fiz uma conta pra você no GastosXP, o nosso controle de gastos. Abre esse link e escolhe seu usuário e sua senha: ' + c.link;
+      $('#conviteWhats').href = 'https://wa.me/?text=' + encodeURIComponent(texto);
+      $('#conviteBox').hidden = false;
+      btn.textContent = 'Gerar outro link';
+    } catch (e) { $('#conviteErr').textContent = e.message; $('#conviteErr').hidden = false; }
+    finally { btn.disabled = false; }
+  };
+  $('#conviteCopiar').onclick = async () => {
+    const campo = $('#conviteLink');
+    try { await navigator.clipboard.writeText(campo.value); toast('Link copiado'); }
+    catch (_) { campo.select(); toast('Selecionei o link: é só copiar'); }
+  };
+
+  /* criar conta direto (só o dono) */
+  let ncLoginEditado = false;
+  $('#btnNovaConta').onclick = () => {
+    const f = $('#novaContaForm'); f.hidden = !f.hidden;
+    if (!f.hidden) { f.reset(); ncLoginEditado = false; $('#ncErr').hidden = true; $('#ncNome').focus(); }
+  };
+  $('#ncLogin').addEventListener('input', () => { ncLoginEditado = true; });
+  $('#ncNome').addEventListener('input', () => {
+    if (ncLoginEditado) return;
+    const primeiro = $('#ncNome').value.trim().split(/\s+/)[0] || '';
+    $('#ncLogin').value = primeiro.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 30);
+  });
+  $('#novaContaForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#ncErr'); err.hidden = true;
+    const nome = $('#ncNome').value.trim(), login = $('#ncLogin').value.trim().toLowerCase(), senha = $('#ncSenha').value;
+    const falha = (m) => { err.textContent = m; err.hidden = false; };
+    if (!nome) return falha('Coloque o nome da pessoa.');
+    if (!/^[a-z0-9._-]{3,30}$/.test(login)) return falha('O usuário precisa ter de 3 a 30 letras ou números, sem espaço nem acento.');
+    if (senha.length < 6) return falha('A senha precisa ter pelo menos 6 caracteres.');
+    const btn = $('#ncSalvar'); btn.disabled = true;
+    try {
+      const c = await api('/api/usuarios', { method: 'POST', body: { nome, login, senha } });
+      $('#novaContaForm').hidden = true;
+      toast(`Conta de ${c.nome} criada. Usuário: ${c.login}`);
+      carregarPessoas();
+    } catch (e) { falha(e.message); }
+    finally { btn.disabled = false; }
+  });
+
+  /* trocar a própria senha */
+  $('#btnTrocarSenha').onclick = () => {
+    const f = $('#senhaForm'); f.hidden = !f.hidden;
+    if (!f.hidden) { f.reset(); $('#tsErr').hidden = true; $('#tsAtual').focus(); }
+  };
+  $('#senhaForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#tsErr'); err.hidden = true;
+    const atual = $('#tsAtual').value, nova = $('#tsNova').value;
+    const falha = (m) => { err.textContent = m; err.hidden = false; };
+    if (!atual) return falha('Digite a senha atual.');
+    if (nova.length < 6) return falha('A nova senha precisa ter pelo menos 6 caracteres.');
+    if (nova !== $('#tsNova2').value) return falha('As duas senhas novas estão diferentes.');
+    const btn = $('#tsSalvar'); btn.disabled = true;
+    try {
+      await api('/api/conta/senha', { method: 'PUT', body: { atual, nova } });
+      $('#senhaForm').hidden = true;
+      toast('Senha trocada');
+    } catch (e) { falha(e.message); }
+    finally { btn.disabled = false; }
+  });
+
   /* ---------- sair ---------- */
   $('#sairForm').addEventListener('submit', () => { $('#sairCsrf').value = cookie('XSRF-TOKEN'); });
 
@@ -617,9 +799,10 @@ dialog.sheet[open]{animation:subir .28s cubic-bezier(.2,.8,.2,1)}
   async function iniciar() {
     try { const m = localStorage.getItem('gastosxp.periodo'); if (m in LIMITE) S.mode = m; } catch (_) {}
     try { S.info = await api('/api/info'); } catch (_) {}
+    try { mostrarConta(await api('/api/conta')); } catch (_) {}
     montarCategorias();
     await carregar();
-    setInterval(() => { if (document.visibilityState === 'visible' && !sheet.open && !cfg.open) carregar(); }, 30000);
+    setInterval(() => { if (document.visibilityState === 'visible' && !sheet.open && !cfg.open && !conta.open) carregar(); }, 30000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') carregar(); });
   }
   iniciar();

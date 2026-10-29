@@ -40,6 +40,10 @@ public class Gasto {
     @Column(length = 60)
     private String autor;
 
+    /** Login da conta dona do gasto. Cada pessoa só vê os próprios. */
+    @Column(nullable = false, length = 30)
+    private String dono;
+
     /** Telefone de quem anotou pelo WhatsApp, já normalizado. Vazio quando veio do site. */
     @Column(length = 20)
     private String telefone;
@@ -61,8 +65,9 @@ public class Gasto {
     protected Gasto() {
     }
 
-    public Gasto(long valorCentavos, String descricao, Categoria categoria, String motivo, Instant quando,
+    public Gasto(String dono, long valorCentavos, String descricao, Categoria categoria, String motivo, Instant quando,
                  String autor, String telefone, Origem origem, String waMessageId, Instant criadoEm) {
+        this.dono = dono;
         this.valorCentavos = valorCentavos;
         this.descricao = descricao;
         this.categoria = categoria;
@@ -116,6 +121,10 @@ public class Gasto {
 
     public String getAutor() {
         return autor;
+    }
+
+    public String getDono() {
+        return dono;
     }
 
     public String getTelefone() {

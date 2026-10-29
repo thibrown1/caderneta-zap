@@ -15,11 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
@@ -33,8 +29,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Painel e API protegidos por login. O webhook fica aberto porque quem chama é a Meta,
- * e cada chamada é conferida pela assinatura HMAC no {@code WebhookController}.
+ * Painel e API protegidos por login; as contas ficam no banco ({@code UsuarioService}).
+ * O webhook fica aberto porque quem chama é a Meta, e cada chamada é conferida pela assinatura HMAC
+ * no {@code WebhookController}. A página de convite também é aberta: quem tem o link cria a própria conta.
  */
 @Configuration
 @EnableWebSecurity
@@ -50,7 +47,9 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/webhook", "/login", "/login.html", "/privacidade", "/privacidade.html",
+                                "/convite", "/convite.html", "/api/convites/estado", "/api/convites/aceitar",
                                 "/favicon.svg", "/icone-180.png", "/actuator/health", "/error").permitAll()
+                        .requestMatchers("/api/usuarios", "/api/convites").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
@@ -78,20 +77,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    UserDetailsService usuarios(CadernetaProperties props) {
-        if (!StringUtils.hasText(props.senha())) {
-            throw new IllegalStateException("Defina a senha do painel na variável PAINEL_SENHA.");
-        }
-        // A senha vem de variável de ambiente e fica só na memória. Guardada sem hash aleatório,
-        // o cookie "continuar conectado" continua valendo depois que o servidor reinicia
-        // (no Render grátis ele hiberna e reinicia toda hora).
-        return new InMemoryUserDetailsManager(User.withUsername(props.usuario())
-                .password("{noop}" + props.senha())
-                .roles("DONO")
-                .build());
-    }
-
     /**
      * Chave que assina o cookie "continuar conectado". Sem PAINEL_LEMBRAR_CHAVE, deriva uma da senha:
      * trocar a senha desconecta todos os aparelhos, que é o esperado.
@@ -108,11 +93,6 @@ public class SecurityConfig {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     /** Força a geração do token CSRF em toda resposta, para o cookie existir antes do primeiro POST. */

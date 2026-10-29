@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A0E1C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GastosXP">
+<meta name="referrer" content="no-referrer">
+<title>Criar conta no GastosXP</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icone-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@600&display=swap">
+<style>
+:root{--bg:#0A0E1C;--card:#141A2E;--ink:#E8ECF7;--muted:#97A1BC;--soft:#1C2440;--pen:#8EA2FF;--cta:#3B57F5;--hero:#1B2DA6;--hero-level:#3150EC;
+  --bad:#F27E78;--bad-soft:#3A1719;--shadow:0 18px 40px -18px rgba(0,0,0,.8);--f-num:"Unbounded","Avenir Next",system-ui,sans-serif;--f-body:"Onest",-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);min-height:100%}
+body{color:var(--ink);font-family:var(--f-body);font-size:16px;-webkit-font-smoothing:antialiased;display:grid;place-items:center;min-height:100dvh;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
+[hidden]{display:none!important}
+.wrap{width:100%;max-width:400px;display:grid;gap:14px}
+.hero{position:relative;overflow:hidden;isolation:isolate;border-radius:28px;background:var(--hero);color:#fff;padding:26px 22px 24px;min-height:190px;display:grid;align-content:end;gap:6px;box-shadow:var(--shadow)}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;background:var(--hero-level);z-index:-1}
+.hero img{width:40px;height:40px;position:absolute;top:22px;left:22px;border-radius:11px;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+h1{font-family:var(--f-num);font-weight:600;font-size:26px;letter-spacing:-.03em;margin:0;line-height:1.15}
+.hero p{margin:0;opacity:.9;font-size:15px}
+.card{background:var(--card);border-radius:24px;padding:22px 20px;display:grid;gap:16px}
+.field{display:grid;gap:8px}
+label{font-size:14px;font-weight:600;color:var(--muted)}
+label span{font-weight:400}
+input{font:inherit;font-size:16px;padding:12px 14px;border:0;border-radius:14px;background:var(--soft);color:var(--ink);width:100%;min-height:50px}
+input:focus-visible{outline:2px solid var(--pen);outline-offset:-2px}
+.dica{margin:0;font-size:13px;color:var(--muted)}
+button,.btn{font:inherit;border:0;border-radius:16px;padding:15px 18px;font-weight:700;font-size:16px;cursor:pointer;background:var(--cta);color:#fff;text-align:center;text-decoration:none;display:block}
+button:disabled{opacity:.6;cursor:default}
+button:focus-visible,.btn:focus-visible{outline:2px solid var(--pen);outline-offset:3px}
+.msg{font-size:14px;margin:0;padding:11px 13px;border-radius:12px;background:var(--bad-soft);color:var(--bad)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="hero">
+    <img src="/favicon.svg" alt="">
+    <h1>Bem-vindo ao GastosXP</h1>
+    <p id="quem">Crie sua conta para anotar seus gastos.</p>
+  </div>
+
+  <div class="card" id="invalido" hidden>
+    <p class="msg" id="invalidoMsg"></p>
+    <a class="btn" href="/login">Ir para o login</a>
+  </div>
+
+  <form class="card" id="form" novalidate hidden>
+    <p class="dica">A conta é sua e não expira. Só você vê os gastos que anotar nela.</p>
+    <div class="field">
+      <label for="nome">Seu nome</label>
+      <input type="text" id="nome" maxlength="40" autocomplete="given-name" required>
+    </div>
+    <div class="field">
+      <label for="login">Usuário <span>(para entrar no site)</span></label>
+      <input type="text" id="login" maxlength="30" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+      <p class="dica">Letras e números, sem espaço nem acento.</p>
+    </div>
+    <div class="field">
+      <label for="senha">Senha <span>(pelo menos 6 caracteres)</span></label>
+      <input type="password" id="senha" autocomplete="new-password" minlength="6" required>
+    </div>
+    <div class="field">
+      <label for="senha2">Repita a senha</label>
+      <input type="password" id="senha2" autocomplete="new-password" minlength="6" required>
+    </div>
+    <p class="msg" id="erro" hidden></p>
+    <button type="submit" id="criar">Criar minha conta</button>
+  </form>
+</main>
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const codigo = new URLSearchParams(location.search).get('c') || '';
+  const token = () => { const m = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/); return m ? decodeURIComponent(m[1]) : ''; };
+
+  function invalido(msg) {
+    $('#form').hidden = true;
+    $('#invalidoMsg').textContent = msg;
+    $('#invalido').hidden = false;
+  }
+  async function detalhe(res, padrao) {
+    try { const p = await res.json(); return p.detail || padrao; } catch (_) { return padrao; }
+  }
+
+  async function iniciar() {
+    if (!codigo) { invalido('Esse endereço não tem o código do convite. Abra o link inteiro que você recebeu.'); return; }
+    try {
+      const res = await fetch('/api/convites/estado?c=' + encodeURIComponent(codigo), { headers: { Accept: 'application/json' } });
+      if (!res.ok) { invalido(await detalhe(res, 'Esse convite não vale mais. Peça um link novo para quem te convidou.')); return; }
+      const e = await res.json();
+      if (e.convidadoPor) $('#quem').textContent = e.convidadoPor + ' te convidou. Crie sua conta para anotar seus gastos.';
+      $('#form').hidden = false;
+      $('#nome').focus();
+    } catch (_) {
+      invalido('Não consegui abrir o convite. Confira a internet e recarregue a página.');
+    }
+  }
+
+  // Sugere um usuário a partir do primeiro nome, enquanto a pessoa não mexer no campo.
+  let loginEditado = false;
+  $('#login').addEventListener('input', () => { loginEditado = true; });
+  $('#nome').addEventListener('input', () => {
+    if (loginEditado) return;
+    const primeiro = $('#nome').value.trim().split(/\s+/)[0] || '';
+    $('#login').value = primeiro.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 30);
+  });
+
+  $('#form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const erro = $('#erro'); erro.hidden = true;
+    const nome = $('#nome').value.trim(), login = $('#login').value.trim().toLowerCase(), senha = $('#senha').value;
+    const falha = (m) => { erro.textContent = m; erro.hidden = false; };
+    if (!nome) return falha('Coloque seu nome.');
+    if (!/^[a-z0-9._-]{3,30}$/.test(login)) return falha('O usuário precisa ter de 3 a 30 letras ou números, sem espaço nem acento.');
+    if (senha.length < 6) return falha('A senha precisa ter pelo menos 6 caracteres.');
+    if (senha !== $('#senha2').value) return falha('As duas senhas estão diferentes. Digite de novo.');
+    const btn = $('#criar'); btn.disabled = true; btn.textContent = 'Criando…';
+    try {
+      const res = await fetch('/api/convites/aceitar', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': token() },
+        body: JSON.stringify({ codigo, nome, login, senha })
+      });
+      if (res.status === 410) { invalido(await detalhe(res, 'Esse convite não vale mais.')); return; }
+      if (!res.ok) { falha(await detalhe(res, res.status === 403 ? 'A página ficou velha. Recarregue e tente de novo.' : 'Não deu para criar a conta. Tente de novo.')); return; }
+      const conta = await res.json();
+      location.href = '/login?criado&u=' + encodeURIComponent(conta.login);
+    } catch (_) {
+      falha('Não deu para criar a conta agora. Confira a internet e tente de novo.');
+    } finally { btn.disabled = false; btn.textContent = 'Criar minha conta'; }
+  });
+
+  iniciar();
+})();
+</script>
+</body>
+</html>

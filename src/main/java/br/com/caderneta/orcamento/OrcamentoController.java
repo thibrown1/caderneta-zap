@@ -1,6 +1,7 @@
 package br.com.caderneta.orcamento;
 
 import br.com.caderneta.nucleo.Dinheiro;
+import br.com.caderneta.usuario.UsuarioAtual;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -34,12 +35,12 @@ public class OrcamentoController {
 
     @GetMapping
     public OrcamentoResponse consultar() {
-        return OrcamentoResponse.de(servico.mensal());
+        return OrcamentoResponse.de(servico.mensal(UsuarioAtual.login()));
     }
 
     /** 0 remove o orçamento. */
     @PutMapping
     public OrcamentoResponse definir(@Valid @RequestBody OrcamentoRequest pedido) {
-        return OrcamentoResponse.de(servico.definir(pedido.valorMensalCentavos()));
+        return OrcamentoResponse.de(servico.definir(UsuarioAtual.login(), pedido.valorMensalCentavos()));
     }
 }

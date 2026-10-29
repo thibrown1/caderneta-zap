@@ -3,6 +3,7 @@ package br.com.caderneta.gasto;
 import br.com.caderneta.nucleo.Categoria;
 import br.com.caderneta.nucleo.ClassificadorCategoria;
 import br.com.caderneta.nucleo.Texto;
+import br.com.caderneta.usuario.UsuarioService;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Gastos de cada conta. Todo método recebe o {@code dono}: uma pessoa nunca vê nem mexe nos gastos da outra. */
 @Service
 @Transactional
 public class GastoService {
@@ -21,32 +23,34 @@ public class GastoService {
     }
 
     private final GastoRepository repositorio;
+    private final UsuarioService usuarios;
     private final Clock clock;
 
-    public GastoService(GastoRepository repositorio, Clock clock) {
+    public GastoService(GastoRepository repositorio, UsuarioService usuarios, Clock clock) {
         this.repositorio = repositorio;
+        this.usuarios = usuarios;
         this.clock = clock;
     }
 
-    public Gasto criarPeloSite(DadosGasto dados) {
-        return repositorio.save(novo(dados, null, Origem.SITE, null));
+    public Gasto criarPeloSite(String dono, DadosGasto dados) {
+        return repositorio.save(novo(dono, dados, null, Origem.SITE, null));
     }
 
-    public Gasto criarPeloWhatsApp(DadosGasto dados, String telefone, String waMessageId) {
-        return repositorio.save(novo(dados, telefone, Origem.WHATSAPP, waMessageId));
+    public Gasto criarPeloWhatsApp(String dono, DadosGasto dados, String telefone, String waMessageId) {
+        return repositorio.save(novo(dono, dados, telefone, Origem.WHATSAPP, waMessageId));
     }
 
-    public Gasto atualizar(UUID id, DadosGasto dados) {
-        Gasto gasto = buscar(id);
+    public Gasto atualizar(String dono, UUID id, DadosGasto dados) {
+        Gasto gasto = buscar(dono, id);
         String descricao = Texto.capitalizar(dados.descricao().trim());
-        gasto.atualizar(dados.valorCentavos(), descricao, categoriaOuInferida(dados.categoria(), descricao),
+        gasto.atualizar(dados.valorCentavos(), descricao, categoriaOuInferida(dono, dados.categoria(), descricao),
                 vazioParaNulo(dados.motivo()), dados.quando() != null ? dados.quando() : gasto.getQuando(),
                 vazioParaNulo(dados.autor()) != null ? dados.autor().trim() : gasto.getAutor(), Instant.now(clock));
         return gasto;
     }
 
-    public void apagar(UUID id) {
-        repositorio.delete(buscar(id));
+    public void apagar(String dono, UUID id) {
+        repositorio.delete(buscar(dono, id));
     }
 
     /** Apaga o último gasto que essa pessoa anotou pelo WhatsApp (comando "apagar"). */
@@ -56,19 +60,20 @@ public class GastoService {
         return ultimo;
     }
 
+    /** Gasto de outra conta responde "não encontrado", igual a um id que não existe. */
     @Transactional(readOnly = true)
-    public Gasto buscar(UUID id) {
-        return repositorio.findById(id).orElseThrow(() -> new GastoNaoEncontradoException(id));
+    public Gasto buscar(String dono, UUID id) {
+        return repositorio.findByIdAndDono(id, dono).orElseThrow(() -> new GastoNaoEncontradoException(id));
     }
 
     @Transactional(readOnly = true)
-    public List<Gasto> listar(Instant inicio, Instant fim) {
-        return repositorio.findByQuandoGreaterThanEqualAndQuandoLessThanOrderByQuandoDesc(inicio, fim);
+    public List<Gasto> listar(String dono, Instant inicio, Instant fim) {
+        return repositorio.findByDonoAndQuandoGreaterThanEqualAndQuandoLessThanOrderByQuandoDesc(dono, inicio, fim);
     }
 
     @Transactional(readOnly = true)
-    public List<Gasto> ultimos() {
-        return repositorio.findTop8ByOrderByQuandoDesc();
+    public List<Gasto> ultimos(String dono) {
+        return repositorio.findTop8ByDonoOrderByQuandoDesc(dono);
     }
 
     @Transactional(readOnly = true)
@@ -77,26 +82,28 @@ public class GastoService {
     }
 
     /**
-     * Categoria escolhida; se não houver, a mesma usada da última vez para essa descrição;
+     * Categoria escolhida; se não houver, a mesma que a pessoa usou da última vez para essa descrição;
      * se nunca apareceu, adivinha pelas palavras; no fim, "Outros".
      */
     @Transactional(readOnly = true)
-    public Categoria categoriaOuInferida(Categoria escolhida, String descricao) {
+    public Categoria categoriaOuInferida(String dono, Categoria escolhida, String descricao) {
         if (escolhida != null) {
             return escolhida;
         }
-        return repositorio.findFirstByDescricaoIgnoreCaseAndCategoriaNotOrderByQuandoDesc(descricao.trim(), Categoria.OUTROS)
+        return repositorio.findFirstByDonoAndDescricaoIgnoreCaseAndCategoriaNotOrderByQuandoDesc(dono, descricao.trim(), Categoria.OUTROS)
                 .map(Gasto::getCategoria)
                 .or(() -> ClassificadorCategoria.inferir(descricao))
                 .orElse(Categoria.OUTROS);
     }
 
-    private Gasto novo(DadosGasto dados, String telefone, Origem origem, String waMessageId) {
+    private Gasto novo(String dono, DadosGasto dados, String telefone, Origem origem, String waMessageId) {
         Instant agora = Instant.now(clock);
         String descricao = Texto.capitalizar(dados.descricao().trim());
-        return new Gasto(dados.valorCentavos(), descricao, categoriaOuInferida(dados.categoria(), descricao),
+        // Sem "quem gastou", fica o nome da própria conta.
+        String autor = vazioParaNulo(dados.autor()) != null ? dados.autor().trim() : usuarios.nomeDe(dono);
+        return new Gasto(dono, dados.valorCentavos(), descricao, categoriaOuInferida(dono, dados.categoria(), descricao),
                 vazioParaNulo(dados.motivo()), dados.quando() != null ? dados.quando() : agora,
-                vazioParaNulo(dados.autor()), telefone, origem, waMessageId, agora);
+                autor, telefone, origem, waMessageId, agora);
     }
 
     private static String vazioParaNulo(String texto) {

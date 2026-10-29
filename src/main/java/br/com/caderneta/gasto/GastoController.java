@@ -1,6 +1,7 @@
 package br.com.caderneta.gasto;
 
 import br.com.caderneta.config.CadernetaProperties;
+import br.com.caderneta.usuario.UsuarioAtual;
 import jakarta.validation.Valid;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -50,30 +51,30 @@ public class GastoController {
         if (ChronoUnit.DAYS.between(inicio, fim) > 400) {
             throw new IllegalArgumentException("Peça no máximo 400 dias por vez.");
         }
-        return servico.listar(inicio.atStartOfDay(zona).toInstant(), fim.plusDays(1).atStartOfDay(zona).toInstant())
+        return servico.listar(UsuarioAtual.login(), inicio.atStartOfDay(zona).toInstant(), fim.plusDays(1).atStartOfDay(zona).toInstant())
                 .stream().map(g -> GastoResponse.de(g, zona)).toList();
     }
 
     @GetMapping("/{id}")
     public GastoResponse buscar(@PathVariable UUID id) {
-        return GastoResponse.de(servico.buscar(id), zona);
+        return GastoResponse.de(servico.buscar(UsuarioAtual.login(), id), zona);
     }
 
     @PostMapping
     public ResponseEntity<GastoResponse> criar(@Valid @RequestBody GastoRequest pedido, UriComponentsBuilder uri) {
-        Gasto gasto = servico.criarPeloSite(pedido.paraDados());
+        Gasto gasto = servico.criarPeloSite(UsuarioAtual.login(), pedido.paraDados());
         return ResponseEntity.created(uri.path("/api/gastos/{id}").buildAndExpand(gasto.getId()).toUri())
                 .body(GastoResponse.de(gasto, zona));
     }
 
     @PutMapping("/{id}")
     public GastoResponse atualizar(@PathVariable UUID id, @Valid @RequestBody GastoRequest pedido) {
-        return GastoResponse.de(servico.atualizar(id, pedido.paraDados()), zona);
+        return GastoResponse.de(servico.atualizar(UsuarioAtual.login(), id, pedido.paraDados()), zona);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void apagar(@PathVariable UUID id) {
-        servico.apagar(id);
+        servico.apagar(UsuarioAtual.login(), id);
     }
 }

@@ -1,6 +1,8 @@
-# Caderneta Zap 📒
+# GastosXP 💸
 
-Controle de gastos da casa pelo WhatsApp. Você manda **"45,90 lanche porque não deu tempo"** e o bot anota, responde com o total da semana e mostra tudo num painel web com resumo da semana e do mês, categorias, orçamento e dicas de onde dá pra economizar.
+Controle de gastos pessoal: um site que abre como app no iPhone, com o **gasto do dia**, da semana e do mês, categorias, orçamento e dicas de onde dá pra economizar. Também tem um bot de WhatsApp: você manda **"45,90 lanche porque não deu tempo"** e ele anota.
+
+> **Situação atual (out/2026):** o site está no ar em https://caderneta-zap.onrender.com (Render + Neon, grátis). O bot de WhatsApp está pronto e configurado, mas a Meta trava contas novas até a **Verificação da Empresa** (erro 131031, "Business Account locked"). Quando a verificação sair, o bot passa a funcionar sem mudar código.
 
 Feito em **Java 21 + Spring Boot 3.5**, com a **WhatsApp Cloud API** oficial da Meta.
 
@@ -17,7 +19,7 @@ flowchart LR
 ## O que tem aqui
 
 - **Bot no WhatsApp**: entende valor, descrição, motivo, categoria (#tag), datas ("ontem", "15/10") e horários ("às 19h"). Responde resumos, extrato, dicas e aceita "apagar" para desfazer.
-- **Painel web** (abre bem no iPhone, dá pra pôr na tela de início): total da semana ou do mês, comparação com o período anterior, barra de orçamento, gasto por categoria e por pessoa, dicas e a lista de anotações com edição.
+- **Painel web** (tema escuro, abre bem no iPhone e dá pra pôr na tela de início): total do **dia**, da semana ou do mês, comparação com o período anterior, orçamento (no dia e na semana vale a parte proporcional do mês), gasto por categoria e por pessoa, dicas e a lista de anotações com edição.
 - **API REST** com login, CSRF e erros no formato Problem Details.
 - **Dicas automáticas**: alerta de orçamento estourado, projeção do mês no ritmo atual, categoria que disparou, gastos pequenos que somam muito e quanto dá pra economizar cortando 30% do que é supérfluo.
 
@@ -45,7 +47,7 @@ Precisa de JDK 21. O jeito mais fácil é pelo **IntelliJ**, que já vem com o M
 
 1. **File → Open** e escolha esta pasta (a que tem o `pom.xml`).
 2. Abra o painel **Maven** (o "m" na barra da direita).
-3. Testes: **caderneta-zap → Lifecycle → verify** (dois cliques). Tem que terminar em **BUILD SUCCESS** (57 testes).
+3. Testes: **caderneta-zap → Lifecycle → verify** (dois cliques). Tem que terminar em **BUILD SUCCESS**.
 4. Subir o sistema: **Plugins → spring-boot → spring-boot:run** (dois cliques). Ele já sobe no perfil `local`, configurado no `pom.xml`.
 5. Quando aparecer `Started CadernetaApplication`, abra http://localhost:8080 e entre com **thiago / local123**.
 
